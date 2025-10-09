@@ -31,7 +31,30 @@ pub trait HTTPService {
     }
 
     /// An appropriate user agent to use when making HTTP requests.
+    ///
+    /// While hypertyper provides a default implementation, you will often
+    /// want to use your own. Often times, it is easiest to implement this
+    /// as
+    ///
+    /// ```text
+    /// format!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
+    /// ```
+    ///
+    /// in your own code, like so:
+    ///
+    /// ```
+    /// # use hypertyper::HTTPService;
+    /// pub struct MyHttpService;
+    ///
+    /// impl HTTPService for MyHttpService {
+    ///     fn user_agent() -> String {
+    ///         format!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
+    ///     }
+    /// }
+    /// ```
     fn user_agent() -> String {
+        // TODO: Consumers will use "hypertyper" as user agent by default.
+        // Maybe turn this into a derive macro or something.
         format!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
     }
 }
