@@ -9,21 +9,58 @@ use reqwest::{self, header};
 use thiserror::Error;
 
 /// An HTTP client provided by an [HTTP service](HTTPService).
-pub type Client = reqwest::Client;
+pub type HTTPClient = reqwest::Client;
 
-/// A general service for making HTTP calls.
+/// Produces new HTTP clients from a template.
 ///
-/// It might be a bit odd to refer to this trait as a "service", since
-/// it appears to be more of a _client_ implementation, but think of
-/// this as a proxy for a remote _service_ (even though a _client_ is used
-/// to communicate with that remote service). A service might not always
-/// be remote, such as when the implementation is a deterministic service
-/// used for testing.
-pub trait HTTPService {
-    /// Default HTTP client that can be used to make HTTP requests.
-    fn client() -> Client {
+/// For example, this makes it easy to create new clients with a standard
+/// user agent.
+#[derive(Debug)]
+pub struct HTTPClientFactory {
+    user_agent: String,
+}
+
+impl HTTPClientFactory {
+    /// Create a new factory using the given package name and version as a basis
+    /// for the clients' user agents.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use hypertyper::HTTPClientFactory;
+    /// let factory = HTTPClientFactory::new(env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
+    /// let user_agent = factory.user_agent();
+    /// assert!(user_agent.starts_with(env!("CARGO_PKG_NAME")));
+    /// assert!(user_agent.ends_with(env!("CARGO_PKG_VERSION")));
+    /// ```
+    pub fn new(pkg_name: impl Into<String>, pkg_version: impl Into<String>) -> Self {
+
+        // TODO: Could this be a macro that is evaluated at the consumer's compilation time?
+        // It would be handy for callers to call something like `user_agent!()` or
+        // `default_factory!()` or whatever, which would then construct a user agent
+        // using the caller's CARGO_PKG_NAME and CARGO_PKG_VERSION.
+
+        let user_agent = format!("{} v{}", pkg_name.into(), pkg_version.into());
+        HTTPClientFactory::new_with_user_agent(user_agent)
+    }
+
+    /// Create a new factory that will produce clients with the given user agent.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use hypertyper::HTTPClientFactory;
+    /// let factory = HTTPClientFactory::new_with_user_agent("my cool user agent");
+    /// assert_eq!(factory.user_agent(), "my cool user agent");
+    /// ```
+    pub fn new_with_user_agent(user_agent: impl Into<String>) -> Self {
+        Self { user_agent: user_agent.into() }
+    }
+
+    /// Creates a new client that can be used to make HTTP requests.
+    pub fn create(&self) -> HTTPClient {
         reqwest::ClientBuilder::new()
-            .user_agent(Self::user_agent())
+            .user_agent(self.user_agent())
             .build()
             // Better error handling? According to the docs, build() only
             // fails if a TLS backend cannot be initialized, or if DNS
@@ -32,32 +69,9 @@ pub trait HTTPService {
             .expect("could not create a new HTTP client")
     }
 
-    /// An appropriate user agent to use when making HTTP requests.
-    ///
-    /// While hypertyper provides a default implementation, you will often
-    /// want to use your own. Often times, it is easiest to implement this
-    /// as
-    ///
-    /// ```text
-    /// format!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
-    /// ```
-    ///
-    /// in your own code, like so:
-    ///
-    /// ```
-    /// # use hypertyper::HTTPService;
-    /// pub struct MyHttpService;
-    ///
-    /// impl HTTPService for MyHttpService {
-    ///     fn user_agent() -> String {
-    ///         format!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
-    ///     }
-    /// }
-    /// ```
-    fn user_agent() -> String {
-        // TODO: Consumers will use "hypertyper" as user agent by default.
-        // Maybe turn this into a derive macro or something.
-        format!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
+    /// The user agent used in HTTP clients produced by this factory.
+    pub fn user_agent(&self) -> &str {
+        &self.user_agent
     }
 }
 
@@ -94,16 +108,20 @@ pub enum HTTPError {
 
 #[cfg(test)]
 mod tests {
-    use crate::HTTPService;
+    use crate::HTTPClientFactory;
     use regex::Regex;
 
-    #[allow(dead_code)]
-    struct UserAgentTestService {}
-    impl HTTPService for UserAgentTestService {}
+    impl Default for HTTPClientFactory {
+        fn default() -> Self {
+            let user_agent = format!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
+            Self { user_agent }
+        }
+    }
 
     #[test]
     fn it_returns_user_agent_with_version_number() {
-        let user_agent = UserAgentTestService::user_agent();
+        let factory = HTTPClientFactory::default();
+        let user_agent = factory.user_agent();
         let version_re = Regex::new(r"^[a-z]+ v\d+\.\d+\.\d+(-(alpha|beta)(\.\d+)?)?$").unwrap();
         assert!(
             version_re.is_match(&user_agent),
