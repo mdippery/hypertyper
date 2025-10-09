@@ -2,6 +2,8 @@
 // Copyright (C) 2025 Michael Dippery <michael@monkey-robot.com>
 
 //! Services for communicating with APIs using HTTP.
+// TODO: Expand library documentation,
+// including reason for this crate's existence, and common use cases.
 
 use reqwest::{self, header};
 use thiserror::Error;
