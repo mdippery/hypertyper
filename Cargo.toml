@@ -1,6 +1,13 @@
 [package]
 name = "hypertyper"
-version = "0.1.0"
+version = "1.0.0"
+authors = ["Michael Dippery <michael@monkey-robot.com>"]
+description = "Useful types (and a few implementations) for HTTP/S"
+#documentation = "https://docs.rs/hypertyper"
+#readme = "README.md"
+#repository = "https://github.com/mdippery/hypertyper"
+keywords = ["http", "networking", "web"]
+categories = ["network-programming", "web-programming::http-client"]
+license = "MIT"
 edition = "2024"
-
-[dependencies]
+#rust-version = "1.85.1"
