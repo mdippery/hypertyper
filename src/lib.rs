@@ -33,7 +33,7 @@ impl HTTPClientFactory {
     /// ```
     pub fn new(pkg_name: impl Into<String>, pkg_version: impl Into<String>) -> Self {
         let user_agent = format!("{} v{}", pkg_name.into(), pkg_version.into());
-        HTTPClientFactory::new_with_user_agent(user_agent)
+        HTTPClientFactory::with_user_agent(user_agent)
     }
 
     /// Create a new factory that will produce clients with the given user agent.
@@ -42,10 +42,10 @@ impl HTTPClientFactory {
     ///
     /// ```
     /// # use hypertyper::HTTPClientFactory;
-    /// let factory = HTTPClientFactory::new_with_user_agent("my cool user agent");
+    /// let factory = HTTPClientFactory::with_user_agent("my cool user agent");
     /// assert_eq!(factory.user_agent(), "my cool user agent");
     /// ```
-    pub fn new_with_user_agent(user_agent: impl Into<String>) -> Self {
+    pub fn with_user_agent(user_agent: impl Into<String>) -> Self {
         Self { user_agent: user_agent.into() }
     }
 
