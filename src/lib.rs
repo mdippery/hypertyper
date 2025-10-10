@@ -2,8 +2,6 @@
 // Copyright (C) 2025 Michael Dippery <michael@monkey-robot.com>
 
 //! Services for communicating with APIs using HTTP.
-// TODO: Expand library documentation,
-// including reason for this crate's existence, and common use cases.
 
 use reqwest::{self, header};
 use thiserror::Error;
@@ -34,12 +32,6 @@ impl HTTPClientFactory {
     /// assert!(user_agent.ends_with(env!("CARGO_PKG_VERSION")));
     /// ```
     pub fn new(pkg_name: impl Into<String>, pkg_version: impl Into<String>) -> Self {
-
-        // TODO: Could this be a macro that is evaluated at the consumer's compilation time?
-        // It would be handy for callers to call something like `user_agent!()` or
-        // `default_factory!()` or whatever, which would then construct a user agent
-        // using the caller's CARGO_PKG_NAME and CARGO_PKG_VERSION.
-
         let user_agent = format!("{} v{}", pkg_name.into(), pkg_version.into());
         HTTPClientFactory::new_with_user_agent(user_agent)
     }
