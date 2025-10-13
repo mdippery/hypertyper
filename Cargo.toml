@@ -6,6 +6,7 @@ description = "Useful types and idioms (and a few implementations) for building 
 documentation = "https://docs.rs/hypertyper"
 readme = "README.md"
 repository = "https://github.com/mdippery/hypertyper"
+#homepage
 keywords = ["http", "networking", "web"]
 categories = ["network-programming", "web-programming::http-client"]
 license = "MIT"
