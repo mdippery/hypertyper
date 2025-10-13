@@ -1,18 +1,61 @@
 // SPDX-License-Identifier: MIT
 // Copyright (C) 2025 Michael Dippery <michael@monkey-robot.com>
 
-//! Services for communicating with APIs using HTTP.
+//! Useful types and idioms (and a few implementations) for building HTTP/S clients.
+//!
+//! **Hypertyper** provides convenient ways to build and use HTTP/S clients.
+//! Configure an [`HTTPClientFactory`] once and use it to produce as many
+//! [`HTTPClient`] instances as needed. Use [`HTTPResult`] to provide a
+//! common way to return HTTP response bodies or errors, and wrap HTTP errors
+//! in a common [`HTTPError`] enum to unify your HTTP response handling.
+//!
+//! Under the hood, Hypertyper uses the excellent [reqwest] library to
+//! satisfy all your HTTP needs.
+//!
+//! # Usage
+//!
+//! With [`HTTPClientFactory`], you can [configure a factory once] and use it to
+//! produce identical HTTP clients as needed. For example, you configure set a
+//! [user agent] when you create the factory, and any HTTP clients created by
+//! that factory will automatically use that user agent string when making HTTP
+//! calls.
+//!
+//! You can also define your own calls to return a common [`HTTPResult`], and
+//! wrap errors using the [`HTTPError`] enum.
+//!
+//! # History
+//!
+//! Hypertyper was created to wrap the most common HTTP-related code into a
+//! common interface usable across libraries and applications. It is a
+//! rapidly-evolving project that will grow to encapsulate the most common
+//! HTTP types, idioms, and operations, allowing you to focus on the specific
+//! needs of your applications.
+//!
+//! [reqwest]: https://crates.io/crates/reqwest
+//! [configure a factory once]: HTTPClientFactory::with_user_agent()
+//! [user agent]: HTTPClientFactory::user_agent()
 
 use reqwest::{self, header};
 use thiserror::Error;
 
-/// An HTTP client provided by an [HTTP service](HTTPService).
+/// An HTTP client created by an [`HTTPClientFactory`].
+///
+/// This is identical to a [`reqwest::Client`], but that could change in
+/// the future, so consumers of this crate are encouraged to use this
+/// type alias instead of referencing `reqwest::Client` directly.
+///
+/// [`reqwest::Client`]: https://docs.rs/reqwest/latest/reqwest/struct.Client.html
 pub type HTTPClient = reqwest::Client;
 
 /// Produces new HTTP clients from a template.
 ///
 /// For example, this makes it easy to create new clients with a standard
 /// user agent.
+///
+/// Most commonly, you will call [`HTTPClientFactory::new()`] with your package
+/// name and version to construct a standardized user agent string based on
+/// your package, but you can also call [`HTTPClientFactory::with_user_agent()`]
+/// to supply your own custom user agent string.
 #[derive(Debug)]
 pub struct HTTPClientFactory {
     user_agent: String,
@@ -50,6 +93,10 @@ impl HTTPClientFactory {
     }
 
     /// Creates a new client that can be used to make HTTP requests.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if a TLS backend cannot be initialized.
     pub fn create(&self) -> HTTPClient {
         reqwest::ClientBuilder::new()
             .user_agent(self.user_agent())
@@ -68,6 +115,11 @@ impl HTTPClientFactory {
 }
 
 /// The result of an HTTP request.
+///
+/// Often times, the type argument `T` is either a `String`, or a type that
+/// can be deserialized with [serde_json].
+///
+/// [serde_json]: https://crates.io/crates/serde_json
 pub type HTTPResult<T> = Result<T, HTTPError>;
 
 /// Indicates an error has occurred when making an HTTP call.
