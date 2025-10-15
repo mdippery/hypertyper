@@ -35,6 +35,8 @@
 //! [configure a factory once]: HTTPClientFactory::with_user_agent()
 //! [user agent]: HTTPClientFactory::user_agent()
 
+pub mod auth;
+
 use reqwest::{self, header};
 use thiserror::Error;
 
