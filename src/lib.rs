@@ -36,6 +36,7 @@
 //! [user agent]: HTTPClientFactory::user_agent()
 
 pub mod auth;
+pub mod service;
 
 use reqwest::{self, header};
 use thiserror::Error;
