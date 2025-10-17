@@ -134,9 +134,7 @@
 //! provide a uniform way of communicating over HTTP, whether code is
 //! under test or live in production.
 
-use crate::HTTPResult;
-use crate::auth::Auth;
-use reqwest::IntoUrl;
+use crate::{Auth, HTTPResult, IntoUrl};
 use serde::{Serialize, de::DeserializeOwned};
 
 /// A service for making calls to an HTTP server and handling responses.
