@@ -39,6 +39,7 @@ pub mod auth;
 pub mod service;
 
 use reqwest::{self, header};
+pub use reqwest::IntoUrl;
 use thiserror::Error;
 
 /// An HTTP client created by an [`HTTPClientFactory`].

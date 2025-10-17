@@ -400,6 +400,7 @@ version = "0.2.0"
 dependencies = [
  "regex",
  "reqwest",
+ "serde",
  "serde_json",
  "temp-env",
  "thiserror",

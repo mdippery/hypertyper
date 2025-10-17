@@ -33,9 +33,12 @@
 //! available for internal tests can take an HTTP service instance.
 //!
 //! ```
-//! use hypertyper::{HTTPClient, HTTPClientFactory};
+//! use hypertyper::{HTTPClient, HTTPClientFactory, HTTPError, HTTPResult, IntoUrl};
 //! use hypertyper::auth::Auth;
 //! use hypertyper::service::HTTPService;
+//! use reqwest::{header, StatusCode};
+//! use serde::{Serialize, de::DeserializeOwned};
+//! use std::fs;
 //!
 //! pub struct RealService {
 //!   auth: Auth,
@@ -43,42 +46,84 @@
 //! }
 //!
 //! impl RealService {
-//!   pub fn new(auth: Auth, factory: HTTPClientFactory) -> Self {
-//!     let client = factory.create();
-//!     Self { auth, client }
-//!   }
+//!     pub fn new(auth: Auth, factory: HTTPClientFactory) -> Self {
+//!       let client = factory.create();
+//!       Self { auth, client }
+//!     }
 //! }
 //!
-//! impl HTTPService for RealService {}
+//! impl HTTPService for RealService {
+//!     async fn get<U>(&self, uri: U) -> HTTPResult<String>
+//!     where
+//!         U: IntoUrl + Send
+//!     {
+//!         Ok(self.client.get(uri).send().await?.text().await?)
+//!     }
+//!
+//!     async fn post<U, D, R>(&self, uri: U, auth: &Auth, data: &D) -> HTTPResult<R>
+//!     where
+//!         U: IntoUrl + Send,
+//!         D: Serialize + Sync,
+//!         R: DeserializeOwned,
+//!     {
+//!         let json_object = self
+//!             .client
+//!             .post(uri)
+//!             .header(header::CONTENT_TYPE, "application/json")
+//!             .json(data)
+//!             .send()
+//!             .await?
+//!             .json::<R>()
+//!             .await?;
+//!         Ok(json_object)
+//!     }
+//! }
 //!
 //! #[derive(Default)]
 //! pub struct TestService;
 //!
-//! impl HTTPService for TestService {}
+//! impl HTTPService for TestService {
+//!     async fn get<U>(&self, uri: U) -> HTTPResult<String>
+//!     where
+//!         U: IntoUrl + Send
+//!     {
+//!         let path = format!("tests/data{}", uri.as_str());
+//!         Ok(fs::read_to_string(path).expect("could not find test data"))
+//!     }
+//!
+//!     async fn post<U, D, R>(&self, uri: U, auth: &Auth, data: &D) -> HTTPResult<R>
+//!     where
+//!         U: IntoUrl + Send,
+//!         D: Serialize + Sync,
+//!         R: DeserializeOwned,
+//!     {
+//!         Err(HTTPError::Http(StatusCode::INTERNAL_SERVER_ERROR))
+//!     }
+//! }
 //!
 //! pub struct APIClient<S: HTTPService> {
-//!   service: S,
+//!     service: S,
 //! }
 //!
 //! impl<S: HTTPService> APIClient<S> {
-//!   // Note: Not pub! This will only be available in tests within the module.
-//!   // Use pub(crate) fn if with_service() should be available in test utils
-//!   // modules, too.
-//!   fn with_service(service: S) -> Self {
-//!     Self { service }
-//!   }
+//!     // Note: Not pub! This will only be available in tests within the module.
+//!     // Use pub(crate) fn if with_service() should be available in test utils
+//!     // modules, too.
+//!     fn with_service(service: S) -> Self {
+//!         Self { service }
+//!     }
 //! }
 //!
 //! impl APIClient<RealService> {
-//!   pub fn new() -> Self {
-//!     let auth = Auth::from_env("MY_COOL_API_KEY");
-//!     let factory = HTTPClientFactory::with_user_agent("my cool user agent");
-//!     let service = RealService::new(auth, factory);
-//!     Self::with_service(service)
-//!   }
+//!     pub fn new(auth: Auth) -> Self {
+//!         let factory = HTTPClientFactory::with_user_agent("my cool user agent");
+//!         let service = RealService::new(auth, factory);
+//!         Self::with_service(service)
+//!     }
 //! }
 //!
-//! let real_client = APIClient::new();
+//! let auth = Auth::new("some-cool-api-key");
+//! let real_client = APIClient::new(auth);
 //!
 //! // APIClient::with_service() is only available within the module,
 //! // which simplifies the public API while allowing easy testing.
@@ -88,3 +133,80 @@
 //! Together, an HTTP service trait and its various concrete implementations
 //! provide a uniform way of communicating over HTTP, whether code is
 //! under test or live in production.
+
+use crate::HTTPResult;
+use crate::auth::Auth;
+use reqwest::IntoUrl;
+use serde::{Serialize, de::DeserializeOwned};
+
+/// A service for making calls to an HTTP server and handling responses.
+///
+/// # Usage
+///
+/// Using this trait, clients can implement different ways of connecting
+/// to an HTTP server, such as an actual connector for production code,
+/// and a mocked connector for testing purposes.
+///
+/// See the [module documentation] for examples on how to use this trait
+/// in both testing and production contexts.
+///
+/// [module documentation]: crate::service
+pub trait HTTPService {
+    /// Performs a GET request to the given URI and returns the raw body.
+    ///
+    /// # Examples
+    ///
+    /// The simplest implementation of this method is
+    ///
+    /// ```text
+    /// Ok(self.client.get(uri).send().await?.text().await?)
+    /// ```
+    ///
+    /// (where `self.client` is a [Reqwest client]).
+    ///
+    /// [Reqwest client]: https://docs.rs/reqwest/latest/reqwest/struct.Client.html
+    fn get<U>(&self, uri: U) -> impl Future<Output = HTTPResult<String>> + Send
+    where
+        U: IntoUrl + Send;
+
+    /// Send a POST request to the `uri` with the JSON object `data` as
+    /// the POST request body.
+    ///
+    /// The response is deserialized from a string to the JSON object
+    /// specified by the `R` type parameter.
+    ///
+    /// # Examples
+    ///
+    /// A simple implementation of this method with bearer authentication is
+    ///
+    /// ```text
+    /// // use reqwest::header;
+    ///
+    /// let auth_header = format!("Bearer {}", auth.api_key());
+    /// let json_object = self
+    ///     .client
+    ///     .post(uri)
+    ///     .header(header::CONTENT_TYPE, "application/json")
+    ///     .header(header::AUTHORIZATION, auth_header)
+    ///     .json(data)
+    ///     .send()
+    ///     .await?
+    ///     .json::<R>()
+    ///     .await?;
+    /// Ok(json_object)
+    /// ```
+    ///
+    /// (where `self.client` is a [Reqwest client] and `auth` is an [`Auth`] instance).
+    ///
+    /// [Reqwest client]: https://docs.rs/reqwest/latest/reqwest/struct.Client.html
+    fn post<U, D, R>(
+        &self,
+        uri: U,
+        auth: &Auth,
+        data: &D,
+    ) -> impl Future<Output = HTTPResult<R>> + Send
+    where
+        U: IntoUrl + Send,
+        D: Serialize + Sync,
+        R: DeserializeOwned;
+}
