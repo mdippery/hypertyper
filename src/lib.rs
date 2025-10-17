@@ -38,8 +38,10 @@
 pub mod auth;
 pub mod service;
 
-use reqwest::{self, header};
+pub use crate::auth::Auth;
+pub use crate::service::HTTPService;
 pub use reqwest::IntoUrl;
+use reqwest::{self, header};
 use thiserror::Error;
 
 /// An HTTP client created by an [`HTTPClientFactory`].
@@ -93,7 +95,9 @@ impl HTTPClientFactory {
     /// assert_eq!(factory.user_agent(), "my cool user agent");
     /// ```
     pub fn with_user_agent(user_agent: impl Into<String>) -> Self {
-        Self { user_agent: user_agent.into() }
+        Self {
+            user_agent: user_agent.into(),
+        }
     }
 
     /// Creates a new client that can be used to make HTTP requests.
