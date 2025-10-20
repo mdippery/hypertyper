@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0
 // Copyright (C) 2025 Michael Dippery <michael@monkey-robot.com>
 
 //! HTTP authentication.

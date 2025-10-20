@@ -9,7 +9,7 @@ repository = "https://github.com/mdippery/hypertyper"
 #homepage
 keywords = ["http", "networking", "web"]
 categories = ["network-programming", "web-programming::http-client"]
-license = "MIT"
+license = "Apache-2.0"
 edition = "2024"
 rust-version = "1.85.1"
 
