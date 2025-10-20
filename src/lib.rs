@@ -39,7 +39,7 @@ pub mod auth;
 pub mod service;
 
 pub use crate::auth::Auth;
-pub use crate::service::HTTPService;
+pub use crate::service::{HTTPGet, HTTPPost, HTTPService};
 pub use reqwest::IntoUrl;
 use reqwest::{self, header};
 use thiserror::Error;
