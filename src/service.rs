@@ -146,6 +146,9 @@
 //! provide a uniform way of communicating over HTTP, whether code is
 //! under test or live in production.
 
+#[cfg(feature = "test-utils")]
+pub mod testing;
+
 use crate::{Auth, HTTPResult, IntoUrl};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -205,7 +208,7 @@ pub trait HTTPPost {
     fn post<U, D, R>(
         &self,
         uri: U,
-        auth: &Auth,
+        auth: &Auth, // TODO: Auth should be optional, or specified in an auth() method (builder pattern?)
         data: &D,
     ) -> impl Future<Output = HTTPResult<R>> + Send
     where

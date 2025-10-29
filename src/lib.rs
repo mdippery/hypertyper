@@ -23,6 +23,12 @@
 //! You can also define your own calls to return a common [`HTTPResult`], and
 //! wrap errors using the [`HTTPError`] enum.
 //!
+//! # Features
+//!
+//! - **test-utils** -
+//!   Includes features that are useful for testing HTTP functionality, such as
+//!   the `HTTPTestService`.
+//!
 //! # History
 //!
 //! Hypertyper was created to wrap the most common HTTP-related code into a
