@@ -273,33 +273,3 @@ pub trait HTTPPost {
 pub trait HTTPService: HTTPGet + HTTPPost {}
 
 impl<T: HTTPGet + HTTPPost> HTTPService for T {}
-
-/*
-pub struct MyHTTPService;
-
-impl HTTPGet for MyHTTPService {
-    async fn get<U>(&self, uri: U) -> HTTPResult<String>
-    where
-        U: IntoUrl + Send,
-    {
-        println!("Hello, GET! {:?}", uri.into_url());
-        Ok(String::from("Hello, GET!"))
-    }
-}
-
-impl HTTPPost for MyHTTPService {
-    async fn post<U, D, R>(&self, uri: U, auth: &Auth, _data: &D) -> HTTPResult<R>
-    where
-        U: IntoUrl + Send,
-        D: Serialize + Sync,
-        R: DeserializeOwned,
-    {
-        print!("Hello, POST! {:?} {:?}", uri.into_url(), auth);
-        Err(HTTPError::Http(StatusCode::INTERNAL_SERVER_ERROR))
-    }
-}
-
-pub fn hello_service(service: impl HTTPService + Debug) {
-    println!("Hello, service! {:?}", service);
-}
-*/
