@@ -44,7 +44,9 @@
 pub mod auth;
 pub mod service;
 
+#[doc(inline)]
 pub use crate::auth::Auth;
+#[doc(inline)]
 pub use crate::service::{HTTPGet, HTTPPost, HTTPService};
 pub use reqwest::IntoUrl;
 use reqwest::{self, header};
