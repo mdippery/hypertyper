@@ -23,6 +23,13 @@
 //! You can also define your own calls to return a common [`HttpResult`], and
 //! wrap errors using the [`HttpError`] enum.
 //!
+//! The easiest way to import the most commonly-used Hypertyper traits and
+//! data structures is through [`hypertyper::prelude`]:
+//!
+//! ```
+//! use hypertyper::prelude::*;
+//! ```
+//!
 //! # Features
 //!
 //! - **test-utils** -
@@ -40,16 +47,13 @@
 //! [reqwest]: https://crates.io/crates/reqwest
 //! [configure a factory once]: HttpClientFactory::with_user_agent()
 //! [user agent]: HttpClientFactory::user_agent()
+//! [`hypertyper::prelude`]: prelude
 
 pub mod auth;
 pub mod service;
 
-#[doc(inline)]
-pub use crate::auth::Auth;
-#[doc(inline)]
-pub use crate::service::{HttpGet, HttpPost, HttpService};
+pub use reqwest::Client as HttpClient;
 use reqwest::{self, header};
-pub use reqwest::{Client as HttpClient, IntoUrl};
 use thiserror::Error;
 
 /// Produces new HTTP clients from a template.
@@ -155,6 +159,23 @@ pub enum HttpError {
     /// A Content-Type that is not understood by the service.
     #[error("Unexpected content type: {0}")]
     UnexpectedContentType(String),
+}
+
+/// Convenience module for the most common Hypertyper imports.
+///
+/// # Examples
+///
+/// ```
+/// use hypertyper::prelude::*;
+/// ```
+///
+/// will bring in the most common and stable traits and data structures
+/// for Hypertyper into your module.
+pub mod prelude {
+    pub use crate::auth::Auth;
+    pub use crate::service::{HttpGet, HttpPost, HttpService};
+    pub use crate::{HttpClient, HttpClientFactory, HttpError, HttpResult};
+    pub use reqwest::IntoUrl;
 }
 
 #[cfg(test)]

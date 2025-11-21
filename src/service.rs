@@ -33,15 +33,7 @@
 //! available for internal tests can take an HTTP service instance.
 //!
 //! ```
-//! use hypertyper::{
-//!     HttpClient,
-//!     HttpClientFactory,
-//!     HttpError,
-//!     HttpGet,
-//!     HttpPost,
-//!     HttpResult,
-//!     IntoUrl
-//! };
+//! use hypertyper::prelude::*;
 //! use hypertyper::auth::Auth;
 //! use hypertyper::service::HttpService;
 //! use reqwest::{header, StatusCode};
@@ -149,7 +141,7 @@
 #[cfg(feature = "test-utils")]
 pub mod testing;
 
-use crate::{Auth, HttpResult, IntoUrl};
+use crate::prelude::*;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
@@ -236,7 +228,7 @@ pub trait HttpPost {
 /// [`HttpGet`] and [`HttpPost`], so you can define a trait like this:
 ///
 /// ```
-/// use hypertyper::{Auth, HttpError, HttpGet, HttpPost, HttpResult, HttpService, IntoUrl};
+/// use hypertyper::prelude::*;
 /// use reqwest::StatusCode;
 /// use serde::Serialize;
 /// use serde::de::DeserializeOwned;
