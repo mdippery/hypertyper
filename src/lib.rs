@@ -48,18 +48,9 @@ pub mod service;
 pub use crate::auth::Auth;
 #[doc(inline)]
 pub use crate::service::{HTTPGet, HTTPPost, HTTPService};
-pub use reqwest::IntoUrl;
 use reqwest::{self, header};
+pub use reqwest::{Client as HTTPClient, IntoUrl};
 use thiserror::Error;
-
-/// An HTTP client created by an [`HTTPClientFactory`].
-///
-/// This is identical to a [`reqwest::Client`], but that could change in
-/// the future, so consumers of this crate are encouraged to use this
-/// type alias instead of referencing `reqwest::Client` directly.
-///
-/// [`reqwest::Client`]: https://docs.rs/reqwest/latest/reqwest/struct.Client.html
-pub type HTTPClient = reqwest::Client;
 
 /// Produces new HTTP clients from a template.
 ///
