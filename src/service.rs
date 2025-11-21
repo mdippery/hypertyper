@@ -34,34 +34,34 @@
 //!
 //! ```
 //! use hypertyper::{
-//!     HTTPClient,
-//!     HTTPClientFactory,
-//!     HTTPError,
-//!     HTTPGet,
-//!     HTTPPost,
-//!     HTTPResult,
+//!     HttpClient,
+//!     HttpClientFactory,
+//!     HttpError,
+//!     HttpGet,
+//!     HttpPost,
+//!     HttpResult,
 //!     IntoUrl
 //! };
 //! use hypertyper::auth::Auth;
-//! use hypertyper::service::HTTPService;
+//! use hypertyper::service::HttpService;
 //! use reqwest::{header, StatusCode};
 //! use serde::{Serialize, de::DeserializeOwned};
 //! use std::fs;
 //!
 //! pub struct RealService {
 //!   auth: Auth,
-//!   client: HTTPClient,
+//!   client: HttpClient,
 //! }
 //!
 //! impl RealService {
-//!     pub fn new(auth: Auth, factory: HTTPClientFactory) -> Self {
+//!     pub fn new(auth: Auth, factory: HttpClientFactory) -> Self {
 //!       let client = factory.create();
 //!       Self { auth, client }
 //!     }
 //! }
 //!
-//! impl HTTPGet for RealService {
-//!     async fn get<U>(&self, uri: U) -> HTTPResult<String>
+//! impl HttpGet for RealService {
+//!     async fn get<U>(&self, uri: U) -> HttpResult<String>
 //!     where
 //!         U: IntoUrl + Send
 //!     {
@@ -69,8 +69,8 @@
 //!     }
 //! }
 //!
-//! impl HTTPPost for RealService {
-//!     async fn post<U, D, R>(&self, uri: U, auth: &Auth, data: &D) -> HTTPResult<R>
+//! impl HttpPost for RealService {
+//!     async fn post<U, D, R>(&self, uri: U, auth: &Auth, data: &D) -> HttpResult<R>
 //!     where
 //!         U: IntoUrl + Send,
 //!         D: Serialize + Sync,
@@ -92,8 +92,8 @@
 //! #[derive(Default)]
 //! pub struct TestService;
 //!
-//! impl HTTPGet for TestService {
-//!     async fn get<U>(&self, uri: U) -> HTTPResult<String>
+//! impl HttpGet for TestService {
+//!     async fn get<U>(&self, uri: U) -> HttpResult<String>
 //!     where
 //!         U: IntoUrl + Send
 //!     {
@@ -102,22 +102,22 @@
 //!     }
 //! }
 //!
-//! impl HTTPPost for TestService {
-//!     async fn post<U, D, R>(&self, uri: U, auth: &Auth, data: &D) -> HTTPResult<R>
+//! impl HttpPost for TestService {
+//!     async fn post<U, D, R>(&self, uri: U, auth: &Auth, data: &D) -> HttpResult<R>
 //!     where
 //!         U: IntoUrl + Send,
 //!         D: Serialize + Sync,
 //!         R: DeserializeOwned,
 //!     {
-//!         Err(HTTPError::Http(StatusCode::INTERNAL_SERVER_ERROR))
+//!         Err(HttpError::Http(StatusCode::INTERNAL_SERVER_ERROR))
 //!     }
 //! }
 //!
-//! pub struct APIClient<S: HTTPService> {
+//! pub struct ApiClient<S: HttpService> {
 //!     service: S,
 //! }
 //!
-//! impl<S: HTTPService> APIClient<S> {
+//! impl<S: HttpService> ApiClient<S> {
 //!     // Note: Not pub! This will only be available in tests within the module.
 //!     // Use pub(crate) fn if with_service() should be available in test utils
 //!     // modules, too.
@@ -126,20 +126,20 @@
 //!     }
 //! }
 //!
-//! impl APIClient<RealService> {
+//! impl ApiClient<RealService> {
 //!     pub fn new(auth: Auth) -> Self {
-//!         let factory = HTTPClientFactory::with_user_agent("my cool user agent");
+//!         let factory = HttpClientFactory::with_user_agent("my cool user agent");
 //!         let service = RealService::new(auth, factory);
 //!         Self::with_service(service)
 //!     }
 //! }
 //!
 //! let auth = Auth::new("some-cool-api-key");
-//! let real_client = APIClient::new(auth);
+//! let real_client = ApiClient::new(auth);
 //!
 //! // APIClient::with_service() is only available within the module,
 //! // which simplifies the public API while allowing easy testing.
-//! let test_client = APIClient::with_service(TestService::default());
+//! let test_client = ApiClient::with_service(TestService::default());
 //! ```
 //!
 //! Together, an HTTP service trait and its various concrete implementations
@@ -149,12 +149,12 @@
 #[cfg(feature = "test-utils")]
 pub mod testing;
 
-use crate::{Auth, HTTPResult, IntoUrl};
+use crate::{Auth, HttpResult, IntoUrl};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-/// An [HTTP service](HTTPService) that only makes HTTP GET requests.
-pub trait HTTPGet {
+/// An [HTTP service](HttpService) that only makes HTTP GET requests.
+pub trait HttpGet {
     /// Performs a GET request to the given URI and returns the raw body.
     ///
     /// # Examples
@@ -168,13 +168,13 @@ pub trait HTTPGet {
     /// (where `self.client` is a [Reqwest client]).
     ///
     /// [Reqwest client]: https://docs.rs/reqwest/latest/reqwest/struct.Client.html
-    fn get<U>(&self, uri: U) -> impl Future<Output = HTTPResult<String>> + Send
+    fn get<U>(&self, uri: U) -> impl Future<Output = HttpResult<String>> + Send
     where
         U: IntoUrl + Send;
 }
 
-/// An [HTTP service](HTTPService) that only makes HTTP POST requests.
-pub trait HTTPPost {
+/// An [HTTP service](HttpService) that only makes HTTP POST requests.
+pub trait HttpPost {
     /// Send a POST request to the `uri` with the JSON object `data` as
     /// the POST request body.
     ///
@@ -210,7 +210,7 @@ pub trait HTTPPost {
         uri: U,
         auth: &Auth, // TODO: Auth should be optional, or specified in an auth() method (builder pattern?)
         data: &D,
-    ) -> impl Future<Output = HTTPResult<R>> + Send
+    ) -> impl Future<Output = HttpResult<R>> + Send
     where
         U: IntoUrl + Send,
         D: Serialize + Sync,
@@ -233,10 +233,10 @@ pub trait HTTPPost {
 /// # Implementing
 ///
 /// This trait is automatically adopted by any types that implement both
-/// [`HTTPGet`] and [`HTTPPost`], so you can define a trait like this:
+/// [`HttpGet`] and [`HttpPost`], so you can define a trait like this:
 ///
 /// ```
-/// use hypertyper::{Auth, HTTPError, HTTPGet, HTTPPost, HTTPResult, HTTPService, IntoUrl};
+/// use hypertyper::{Auth, HttpError, HttpGet, HttpPost, HttpResult, HttpService, IntoUrl};
 /// use reqwest::StatusCode;
 /// use serde::Serialize;
 /// use serde::de::DeserializeOwned;
@@ -245,8 +245,8 @@ pub trait HTTPPost {
 /// #[derive(Debug)]
 /// pub struct MyHTTPService;
 ///
-/// impl HTTPGet for MyHTTPService {
-///     async fn get<U>(&self, uri: U) -> HTTPResult<String>
+/// impl HttpGet for MyHTTPService {
+///     async fn get<U>(&self, uri: U) -> HttpResult<String>
 ///     where
 ///         U: IntoUrl + Send,
 ///     {
@@ -255,24 +255,24 @@ pub trait HTTPPost {
 ///     }
 /// }
 ///
-/// impl HTTPPost for MyHTTPService {
-///     async fn post<U, D, R>(&self, uri: U, auth: &Auth, _data: &D) -> HTTPResult<R>
+/// impl HttpPost for MyHTTPService {
+///     async fn post<U, D, R>(&self, uri: U, auth: &Auth, _data: &D) -> HttpResult<R>
 ///     where
 ///         U: IntoUrl + Send,
 ///         D: Serialize + Sync,
 ///         R: DeserializeOwned,
 ///     {
 ///         print!("Hello, POST! {:?} {:?}", uri.into_url(), auth);
-///         Err(HTTPError::Http(StatusCode::INTERNAL_SERVER_ERROR))
+///         Err(HttpError::Http(StatusCode::INTERNAL_SERVER_ERROR))
 ///     }
 /// }
 ///
-/// pub fn hello_service(service: impl HTTPService + Debug) {
+/// pub fn hello_service(service: impl HttpService + Debug) {
 ///     println!("Hello, service! {:?}", service);
 /// }
 /// ```
 ///
 /// Note that `HTTPService` is automatically implemented. Pretty cool, huh?
-pub trait HTTPService: HTTPGet + HTTPPost {}
+pub trait HttpService: HttpGet + HttpPost {}
 
-impl<T: HTTPGet + HTTPPost> HTTPService for T {}
+impl<T: HttpGet + HttpPost> HttpService for T {}

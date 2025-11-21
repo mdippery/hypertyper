@@ -4,24 +4,24 @@
 //! Useful types and idioms for building HTTP/S clients.
 //!
 //! **Hypertyper** provides convenient ways to build and use HTTP/S clients.
-//! Configure an [`HTTPClientFactory`] once and use it to produce as many
-//! [`HTTPClient`] instances as needed. Use [`HTTPResult`] to provide a
+//! Configure an [`HttpClientFactory`] once and use it to produce as many
+//! [`HttpClient`] instances as needed. Use [`HttpResult`] to provide a
 //! common way to return HTTP response bodies or errors, and wrap HTTP errors
-//! in a common [`HTTPError`] enum to unify your HTTP response handling.
+//! in a common [`HttpError`] enum to unify your HTTP response handling.
 //!
 //! Under the hood, Hypertyper uses the excellent [reqwest] library to
 //! satisfy all your HTTP needs.
 //!
 //! # Usage
 //!
-//! With [`HTTPClientFactory`], you can [configure a factory once] and use it to
+//! With [`HttpClientFactory`], you can [configure a factory once] and use it to
 //! produce identical HTTP clients as needed. For example, you configure set a
 //! [user agent] when you create the factory, and any HTTP clients created by
 //! that factory will automatically use that user agent string when making HTTP
 //! calls.
 //!
-//! You can also define your own calls to return a common [`HTTPResult`], and
-//! wrap errors using the [`HTTPError`] enum.
+//! You can also define your own calls to return a common [`HttpResult`], and
+//! wrap errors using the [`HttpError`] enum.
 //!
 //! # Features
 //!
@@ -38,8 +38,8 @@
 //! needs of your applications.
 //!
 //! [reqwest]: https://crates.io/crates/reqwest
-//! [configure a factory once]: HTTPClientFactory::with_user_agent()
-//! [user agent]: HTTPClientFactory::user_agent()
+//! [configure a factory once]: HttpClientFactory::with_user_agent()
+//! [user agent]: HttpClientFactory::user_agent()
 
 pub mod auth;
 pub mod service;
@@ -47,9 +47,9 @@ pub mod service;
 #[doc(inline)]
 pub use crate::auth::Auth;
 #[doc(inline)]
-pub use crate::service::{HTTPGet, HTTPPost, HTTPService};
+pub use crate::service::{HttpGet, HttpPost, HttpService};
 use reqwest::{self, header};
-pub use reqwest::{Client as HTTPClient, IntoUrl};
+pub use reqwest::{Client as HttpClient, IntoUrl};
 use thiserror::Error;
 
 /// Produces new HTTP clients from a template.
@@ -57,31 +57,31 @@ use thiserror::Error;
 /// For example, this makes it easy to create new clients with a standard
 /// user agent.
 ///
-/// Most commonly, you will call [`HTTPClientFactory::new()`] with your package
+/// Most commonly, you will call [`HttpClientFactory::new()`] with your package
 /// name and version to construct a standardized user agent string based on
-/// your package, but you can also call [`HTTPClientFactory::with_user_agent()`]
+/// your package, but you can also call [`HttpClientFactory::with_user_agent()`]
 /// to supply your own custom user agent string.
 #[derive(Debug)]
-pub struct HTTPClientFactory {
+pub struct HttpClientFactory {
     user_agent: String,
 }
 
-impl HTTPClientFactory {
+impl HttpClientFactory {
     /// Create a new factory using the given package name and version as a basis
     /// for the clients' user agents.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use hypertyper::HTTPClientFactory;
-    /// let factory = HTTPClientFactory::new(env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
+    /// # use hypertyper::HttpClientFactory;
+    /// let factory = HttpClientFactory::new(env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
     /// let user_agent = factory.user_agent();
     /// assert!(user_agent.starts_with(env!("CARGO_PKG_NAME")));
     /// assert!(user_agent.ends_with(env!("CARGO_PKG_VERSION")));
     /// ```
     pub fn new(pkg_name: impl Into<String>, pkg_version: impl Into<String>) -> Self {
         let user_agent = format!("{} v{}", pkg_name.into(), pkg_version.into());
-        HTTPClientFactory::with_user_agent(user_agent)
+        HttpClientFactory::with_user_agent(user_agent)
     }
 
     /// Create a new factory that will produce clients with the given user agent.
@@ -89,8 +89,8 @@ impl HTTPClientFactory {
     /// # Examples
     ///
     /// ```
-    /// # use hypertyper::HTTPClientFactory;
-    /// let factory = HTTPClientFactory::with_user_agent("my cool user agent");
+    /// # use hypertyper::HttpClientFactory;
+    /// let factory = HttpClientFactory::with_user_agent("my cool user agent");
     /// assert_eq!(factory.user_agent(), "my cool user agent");
     /// ```
     pub fn with_user_agent(user_agent: impl Into<String>) -> Self {
@@ -104,7 +104,7 @@ impl HTTPClientFactory {
     /// # Panics
     ///
     /// This method panics if a TLS backend cannot be initialized.
-    pub fn create(&self) -> HTTPClient {
+    pub fn create(&self) -> HttpClient {
         reqwest::ClientBuilder::new()
             .user_agent(self.user_agent())
             .build()
@@ -127,11 +127,11 @@ impl HTTPClientFactory {
 /// can be deserialized with [serde_json].
 ///
 /// [serde_json]: https://crates.io/crates/serde_json
-pub type HTTPResult<T> = Result<T, HTTPError>;
+pub type HttpResult<T> = Result<T, HttpError>;
 
 /// Indicates an error has occurred when making an HTTP call.
 #[derive(Debug, Error)]
-pub enum HTTPError {
+pub enum HttpError {
     /// An error that occurred while making an HTTP request.
     #[error("Error while making or processing an HTTP request: {0}")]
     Request(#[from] reqwest::Error),
@@ -159,10 +159,10 @@ pub enum HTTPError {
 
 #[cfg(test)]
 mod tests {
-    use crate::HTTPClientFactory;
+    use crate::HttpClientFactory;
     use regex::Regex;
 
-    impl Default for HTTPClientFactory {
+    impl Default for HttpClientFactory {
         fn default() -> Self {
             let user_agent = format!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
             Self { user_agent }
@@ -171,7 +171,7 @@ mod tests {
 
     #[test]
     fn it_returns_user_agent_with_version_number() {
-        let factory = HTTPClientFactory::default();
+        let factory = HttpClientFactory::default();
         let user_agent = factory.user_agent();
         let version_re = Regex::new(r"^[a-z]+ v\d+\.\d+\.\d+(-(alpha|beta)(\.\d+)?)?$").unwrap();
         assert!(

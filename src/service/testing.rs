@@ -3,7 +3,7 @@
 
 //! Testing utilities for HTTP services.
 //!
-//! [`HTTPService`] provides a test HTTP service that returns static
+//! [`HttpService`] provides a test HTTP service that returns static
 //! responses without making any actual HTTP requests over a network. It
 //! is useful to test HTTP clients in unit tests.
 //!
@@ -12,14 +12,14 @@
 //!
 //! See each struct's documentation for examples of common usage.
 
-use crate::{Auth, HTTPGet, HTTPPost, HTTPResult};
+use crate::{Auth, HttpGet, HttpPost, HttpResult};
 use reqwest::IntoUrl;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use std::fs;
 
 #[cfg(doc)]
-use crate::HTTPService;
+use crate::HttpService;
 
 /// A service useful for unit tests that return responses containing
 /// test data.
@@ -27,7 +27,7 @@ use crate::HTTPService;
 /// # Usage
 ///
 /// `HTTPTestService` can be used in unit tests to mock an HTTP service.
-/// Often times you will design your HTTP client to take an [`HTTPService`].
+/// Often times you will design your HTTP client to take an [`HttpService`].
 /// In production, this will be a "real" data structure capable of making
 /// calls out to an actual HTTP server, but in unit tests, you will likely
 /// want a test version that returns static responses without making any
@@ -37,14 +37,14 @@ use crate::HTTPService;
 /// service. Here is a simple use of it:
 ///
 /// ```
-/// use hypertyper::service::HTTPService;
-/// use hypertyper::service::testing::HTTPTestService;
+/// use hypertyper::service::HttpService;
+/// use hypertyper::service::testing::HttpTestService;
 ///
-/// pub struct APIClient<T: HTTPService> {
+/// pub struct APIClient<T: HttpService> {
 ///     service: T,
 /// }
 ///
-/// impl<T: HTTPService> APIClient<T> {
+/// impl<T: HttpService> APIClient<T> {
 ///     fn with_service(service: T) -> Self {
 ///         Self { service }
 ///     }
@@ -73,15 +73,15 @@ use crate::HTTPService;
 /// create a service:
 ///
 /// ```
-/// # use hypertyper::service::testing::HTTPTestService;
+/// # use hypertyper::service::testing::HttpTestService;
 /// let service = HTTPTestService::new("tests/data/output");
 /// ```
 ///
 /// And then you make a GET request:
 ///
 /// ```
-/// # use hypertyper::HTTPGet;
-/// # use hypertyper::service::testing::HTTPTestService;
+/// # use hypertyper::HttpGet;
+/// # use hypertyper::service::testing::HttpTestService;
 /// # let service = HTTPTestService::new("tests/data/output");
 /// let response = service.get("/users/foo/about");
 /// ```
@@ -92,8 +92,8 @@ use crate::HTTPService;
 /// You can also make POST requests the same way:
 ///
 /// ```
-/// # use hypertyper::{Auth, HTTPPost};
-/// # use hypertyper::service::testing::{HTTPTestService, TestDataLoader};
+/// # use hypertyper::{Auth, HttpPost};
+/// # use hypertyper::service::testing::{HttpTestService, TestDataLoader};
 /// # use serde::{Deserialize, Serialize};
 /// #
 /// # let service = HTTPTestService::new("tests/data/output");
@@ -111,12 +111,12 @@ use crate::HTTPService;
 ///
 /// And `HTTPTestService` would deserialize the data in `tests/data/users.json`
 /// and return the deserialized object in the response.
-pub struct HTTPTestService {
+pub struct HttpTestService {
     root: String,
     ext: String,
 }
 
-impl HTTPTestService {
+impl HttpTestService {
     /// Creates a new test service that loads data from the `root` directory
     /// for its responses.
     pub fn new(root: impl Into<String>) -> Self {
@@ -131,13 +131,13 @@ impl HTTPTestService {
     }
 }
 
-impl HTTPGet for HTTPTestService {
+impl HttpGet for HttpTestService {
     /// Mocks an HTTP GET request by loading test data mapped to the given `uri`.
     ///
     /// # Panics
     ///
     /// If test data cannot be loaded.
-    async fn get<U>(&self, uri: U) -> HTTPResult<String>
+    async fn get<U>(&self, uri: U) -> HttpResult<String>
     where
         U: IntoUrl + Send,
     {
@@ -145,7 +145,7 @@ impl HTTPGet for HTTPTestService {
     }
 }
 
-impl HTTPPost for HTTPTestService {
+impl HttpPost for HttpTestService {
     /// Mocks an HTTP POST request by loading test data mapped to the given `uri`.
     ///
     /// This method does nothing with the POST `data` itself, nor does it
@@ -154,7 +154,7 @@ impl HTTPPost for HTTPTestService {
     /// # Panics
     ///
     /// If test data cannot be loaded.
-    async fn post<U, D, R>(&self, uri: U, _auth: &Auth, _data: &D) -> HTTPResult<R>
+    async fn post<U, D, R>(&self, uri: U, _auth: &Auth, _data: &D) -> HttpResult<R>
     where
         U: IntoUrl + Send,
         D: Serialize + Sync,
@@ -189,8 +189,8 @@ impl HTTPPost for HTTPTestService {
 /// `TestDataLoader` is often used in conjunction with `HTTPService::post()`:
 ///
 /// ```
-/// # use hypertyper::{Auth, HTTPPost};
-/// # use hypertyper::service::testing::{HTTPTestService, TestDataLoader};
+/// # use hypertyper::{Auth, HttpPost};
+/// # use hypertyper::service::testing::{HttpTestService, TestDataLoader};
 /// # use serde::{Deserialize, Serialize};
 /// #
 /// # #[derive(Deserialize, Serialize)]
@@ -238,14 +238,14 @@ impl TestDataLoader {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Auth, HTTPError, HTTPGet, HTTPPost};
+    use crate::{Auth, HttpError, HttpGet, HttpPost};
     use serde::{Deserialize, Serialize};
     use std::sync::LazyLock;
 
     static LOADER: LazyLock<TestDataLoader> =
         LazyLock::new(|| TestDataLoader::new("tests/data/input"));
-    static SERVICE: LazyLock<HTTPTestService> =
-        LazyLock::new(|| HTTPTestService::new("tests/data/output"));
+    static SERVICE: LazyLock<HttpTestService> =
+        LazyLock::new(|| HttpTestService::new("tests/data/output"));
 
     #[derive(Debug, Deserialize, Serialize)]
     struct User {
@@ -253,7 +253,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_loads_data() -> Result<(), HTTPError> {
+    async fn get_loads_data() -> Result<(), HttpError> {
         let response = SERVICE.get("/users/foo/about").await?;
         assert_eq!(response, "{\"username\": \"foo\"}");
         Ok(())
@@ -266,7 +266,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn post_loads_data() -> Result<(), HTTPError> {
+    async fn post_loads_data() -> Result<(), HttpError> {
         let auth = Auth::new("my-api-key");
         let data: User = LOADER.load("user");
         let response: User = SERVICE.post("/users", &auth, &data).await?;
