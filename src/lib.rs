@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (C) 2025 Michael Dippery <michael@monkey-robot.com>
 
-//! Useful types and idioms (and a few implementations) for building HTTP/S clients.
+//! Useful types and idioms for building HTTP/S clients.
 //!
 //! **Hypertyper** provides convenient ways to build and use HTTP/S clients.
 //! Configure an [`HTTPClientFactory`] once and use it to produce as many

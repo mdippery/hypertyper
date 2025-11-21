@@ -2,7 +2,7 @@
 name = "hypertyper"
 version = "0.3.0"
 authors = ["Michael Dippery <michael@monkey-robot.com>"]
-description = "Useful types and idioms (and a few implementations) for building HTTP/S clients"
+description = "Useful types and idioms for building HTTP/S clients"
 documentation = "https://docs.rs/hypertyper"
 readme = "README.md"
 repository = "https://github.com/mdippery/hypertyper"
