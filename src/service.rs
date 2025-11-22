@@ -35,7 +35,6 @@
 //! ```
 //! use hypertyper::prelude::*;
 //! use hypertyper::auth::Auth;
-//! use hypertyper::service::HttpService;
 //! use reqwest::{header, StatusCode};
 //! use serde::{Serialize, de::DeserializeOwned};
 //! use std::fs;
