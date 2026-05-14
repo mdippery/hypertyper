@@ -53,8 +53,6 @@ pub mod auth;
 pub mod service;
 
 pub use reqwest::Client as HttpClient;
-use reqwest::{self, header};
-use thiserror::Error;
 
 /// Produces new HTTP clients from a template.
 ///
@@ -131,35 +129,7 @@ impl HttpClientFactory {
 /// can be deserialized with [serde_json].
 ///
 /// [serde_json]: https://crates.io/crates/serde_json
-pub type HttpResult<T> = Result<T, HttpError>;
-
-/// Indicates an error has occurred when making an HTTP call.
-#[derive(Debug, Error)]
-pub enum HttpError {
-    /// An error that occurred while making an HTTP request.
-    #[error("Error while making or processing an HTTP request: {0}")]
-    Request(#[from] reqwest::Error),
-
-    /// An error that occurred while trying to serialize a POST body.
-    #[error("Error serializing POST body: {0}")]
-    Serialization(#[from] serde_json::Error),
-
-    /// An unsuccessful HTTP status code in an HTTP response.
-    #[error("Request returned HTTP {0}")]
-    Http(reqwest::StatusCode),
-
-    /// A missing Content-Type header in a response.
-    #[error("Missing Content-Type header")]
-    MissingContentType,
-
-    /// An invalid Content-Type header.
-    #[error("Invalid Content-Type header value: {0}")]
-    InvalidContentType(#[from] header::ToStrError),
-
-    /// A Content-Type that is not understood by the service.
-    #[error("Unexpected content type: {0}")]
-    UnexpectedContentType(String),
-}
+pub type HttpResult<T> = anyhow::Result<T>;
 
 /// Convenience module for the most common Hypertyper imports.
 ///
@@ -174,7 +144,7 @@ pub enum HttpError {
 pub mod prelude {
     pub use crate::auth::Auth;
     pub use crate::service::{HttpGet, HttpPost, HttpService};
-    pub use crate::{HttpClient, HttpClientFactory, HttpError, HttpResult};
+    pub use crate::{HttpClient, HttpClientFactory, HttpResult};
     pub use reqwest::IntoUrl;
 }
 

@@ -33,6 +33,7 @@
 //! available for internal tests can take an HTTP service instance.
 //!
 //! ```
+//! use anyhow::anyhow;
 //! use hypertyper::prelude::*;
 //! use hypertyper::auth::Auth;
 //! use reqwest::{header, StatusCode};
@@ -100,7 +101,7 @@
 //!         D: Serialize + Sync,
 //!         R: DeserializeOwned,
 //!     {
-//!         Err(HttpError::Http(StatusCode::INTERNAL_SERVER_ERROR))
+//!         Err(anyhow!("{}", StatusCode::INTERNAL_SERVER_ERROR))
 //!     }
 //! }
 //!
@@ -227,6 +228,7 @@ pub trait HttpPost {
 /// [`HttpGet`] and [`HttpPost`], so you can define a trait like this:
 ///
 /// ```
+/// use anyhow::anyhow;
 /// use hypertyper::prelude::*;
 /// use reqwest::StatusCode;
 /// use serde::Serialize;
@@ -254,7 +256,7 @@ pub trait HttpPost {
 ///         R: DeserializeOwned,
 ///     {
 ///         print!("Hello, POST! {:?} {:?}", uri.into_url(), auth);
-///         Err(HttpError::Http(StatusCode::INTERNAL_SERVER_ERROR))
+///         Err(anyhow!("{}", StatusCode::INTERNAL_SERVER_ERROR))
 ///     }
 /// }
 ///

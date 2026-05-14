@@ -1,6 +1,6 @@
 [package]
 name = "hypertyper"
-version = "0.3.1-beta.0"
+version = "0.4.0-alpha.0"
 authors = ["Michael Dippery <michael@monkey-robot.com>"]
 description = "Useful types and idioms for building HTTP/S clients"
 documentation = "https://docs.rs/hypertyper"
@@ -17,10 +17,10 @@ rust-version = "1.85.1"
 test-utils = []
 
 [dependencies]
+anyhow = "1.0.102"
 reqwest = { version = "0.13.3", features = ["json"] }
 serde = "1.0.228"
 serde_json = "1.0.145"
-thiserror = "2.0.17"
 
 [dev-dependencies]
 regex = "1.11.3"
