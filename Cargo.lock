@@ -388,7 +388,7 @@ dependencies = [
 
 [[package]]
 name = "hypertyper"
-version = "0.3.1-beta.0"
+version = "0.3.1"
 dependencies = [
  "regex",
  "reqwest",

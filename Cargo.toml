@@ -1,6 +1,6 @@
 [package]
 name = "hypertyper"
-version = "0.3.1-beta.0"
+version = "0.3.1"
 authors = ["Michael Dippery <michael@monkey-robot.com>"]
 description = "Useful types and idioms for building HTTP/S clients"
 documentation = "https://docs.rs/hypertyper"
