@@ -152,7 +152,7 @@ pub trait HttpGet {
     ///
     /// The simplest implementation of this method is
     ///
-    /// ```text
+    /// ```compile_fail
     /// Ok(self.client.get(uri).send().await?.text().await?)
     /// ```
     ///
@@ -176,7 +176,7 @@ pub trait HttpPost {
     ///
     /// A simple implementation of this method with bearer authentication is
     ///
-    /// ```text
+    /// ```compile_fail
     /// // use reqwest::header;
     ///
     /// let auth_header = format!("Bearer {}", auth.api_key());
