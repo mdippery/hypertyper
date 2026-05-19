@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright (C) 2025 Michael Dippery <michael@monkey-robot.com>
+// Copyright (C) 2025-2026 Michael Dippery <michael@monkey-robot.com>
 
 //! Useful types and idioms for building HTTP/S clients.
 //!
@@ -83,8 +83,8 @@ impl HttpClientFactory {
     /// assert!(user_agent.starts_with(env!("CARGO_PKG_NAME")));
     /// assert!(user_agent.ends_with(env!("CARGO_PKG_VERSION")));
     /// ```
-    pub fn new(pkg_name: impl Into<String>, pkg_version: impl Into<String>) -> Self {
-        let user_agent = format!("{} v{}", pkg_name.into(), pkg_version.into());
+    pub fn new(pkg_name: impl AsRef<str>, pkg_version: impl AsRef<str>) -> Self {
+        let user_agent = format!("{} v{}", pkg_name.as_ref(), pkg_version.as_ref());
         HttpClientFactory::with_user_agent(user_agent)
     }
 
