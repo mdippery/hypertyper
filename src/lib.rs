@@ -74,11 +74,24 @@ impl HttpClientFactory {
     /// Create a new factory using the given package name and version as a basis
     /// for the clients' user agents.
     ///
+    /// Use [`http_factory`] to quickly create a factory using your package name
+    /// and version as the user string.
+    ///
     /// # Examples
     ///
     /// ```
     /// # use hypertyper::HttpClientFactory;
     /// let factory = HttpClientFactory::new(env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
+    /// let user_agent = factory.user_agent();
+    /// assert!(user_agent.starts_with(env!("CARGO_PKG_NAME")));
+    /// assert!(user_agent.ends_with(env!("CARGO_PKG_VERSION")));
+    /// ```
+    ///
+    /// The above code is equivalent to:
+    ///
+    /// ```
+    /// # use hypertyper::{http_factory, HttpClientFactory};
+    /// let factory = http_factory!();
     /// let user_agent = factory.user_agent();
     /// assert!(user_agent.starts_with(env!("CARGO_PKG_NAME")));
     /// assert!(user_agent.ends_with(env!("CARGO_PKG_VERSION")));
@@ -176,6 +189,19 @@ pub mod prelude {
     pub use crate::service::{HttpGet, HttpPost, HttpService};
     pub use crate::{HttpClient, HttpClientFactory, HttpError, HttpResult};
     pub use reqwest::IntoUrl;
+}
+
+/// Creates a new [`HttpClientFactory`] with a standardized user agent string.
+///
+/// The user agent string consists of the caller's package name and version.
+/// For example, if you call this macro from "my-rust-package v1.2.3", the
+/// user agent string will be "my-rust-package v1.2.3", as described in
+/// [`HttpClientFactory::new()`].
+#[macro_export]
+macro_rules! http_factory {
+    () => {
+        HttpClientFactory::new(env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
+    };
 }
 
 #[cfg(test)]
