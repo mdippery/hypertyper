@@ -12,14 +12,15 @@
 //!
 //! See each struct's documentation for examples of common usage.
 
-use crate::{Auth, HttpGet, HttpPost, HttpResult};
+use crate::auth::Auth;
+use crate::service::{HttpGet, HttpPost, HttpResult};
 use reqwest::IntoUrl;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use std::fs;
 
 #[cfg(doc)]
-use crate::HttpService;
+use crate::service::HttpService;
 
 /// A service useful for unit tests that return responses containing
 /// test data.
