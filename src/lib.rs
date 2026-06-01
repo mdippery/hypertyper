@@ -34,7 +34,7 @@
 //!
 //! - **test-utils** -
 //!   Includes features that are useful for testing HTTP functionality, such as
-//!   the `HTTPTestService`.
+//!   the `HttpTestService`.
 //!
 //! # History
 //!

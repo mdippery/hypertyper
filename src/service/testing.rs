@@ -27,14 +27,14 @@ use crate::service::HttpService;
 ///
 /// # Usage
 ///
-/// `HTTPTestService` can be used in unit tests to mock an HTTP service.
+/// `HttpTestService` can be used in unit tests to mock an HTTP service.
 /// Often times you will design your HTTP client to take an [`HttpService`].
 /// In production, this will be a "real" data structure capable of making
 /// calls out to an actual HTTP server, but in unit tests, you will likely
 /// want a test version that returns static responses without making any
 /// actual requests over a network.
 ///
-/// `HTTPTestService` provides one such implementation of a mock HTTP
+/// `HttpTestService` provides one such implementation of a mock HTTP
 /// service. Here is a simple use of it:
 ///
 /// ```
@@ -64,40 +64,41 @@ use crate::service::HttpService;
 /// */
 ///
 /// // In your unit tests:
-/// let client = APIClient::with_service(HTTPTestService::new("tests/data/output"));
+/// let client = APIClient::with_service(HttpTestService::new("tests/data/output"));
 /// ```
 ///
 /// ## Configuration
 ///
-/// `HTTPTestService` expects to find a file system structure that matches
+/// `HttpTestService` expects to find a file system structure that matches
 /// the URIs you will call in GET and POST requests. For example, say you
 /// create a service:
 ///
 /// ```
 /// # use hypertyper::service::testing::HttpTestService;
-/// let service = HTTPTestService::new("tests/data/output");
+/// let service = HttpTestService::new("tests/data/output");
 /// ```
 ///
 /// And then you make a GET request:
 ///
 /// ```
-/// # use hypertyper::HttpGet;
+/// # use hypertyper::service::HttpGet;
 /// # use hypertyper::service::testing::HttpTestService;
-/// # let service = HTTPTestService::new("tests/data/output");
+/// # let service = HttpTestService::new("tests/data/output");
 /// let response = service.get("/users/foo/about");
 /// ```
 ///
-/// `HTTPTestService` would load data from `tests/data/users/foo/about.json`,
+/// `HttpTestService` would load data from `tests/data/users/foo/about.json`,
 /// relative to where you ran `cargo test`.
 ///
 /// You can also make POST requests the same way:
 ///
 /// ```
-/// # use hypertyper::{Auth, HttpPost};
+/// # use hypertyper::auth::Auth;
+/// # use hypertyper::service::HttpPost;
 /// # use hypertyper::service::testing::{HttpTestService, TestDataLoader};
 /// # use serde::{Deserialize, Serialize};
 /// #
-/// # let service = HTTPTestService::new("tests/data/output");
+/// # let service = HttpTestService::new("tests/data/output");
 /// #
 /// # #[derive(Deserialize, Serialize)]
 /// # struct User {
@@ -110,7 +111,7 @@ use crate::service::HttpService;
 /// let response = service.post::<&str, User, User>("/users", &auth, &data);
 /// ```
 ///
-/// And `HTTPTestService` would deserialize the data in `tests/data/users.json`
+/// And `HttpTestService` would deserialize the data in `tests/data/users.json`
 /// and return the deserialized object in the response.
 pub struct HttpTestService {
     root: String,
@@ -190,7 +191,8 @@ impl HttpPost for HttpTestService {
 /// `TestDataLoader` is often used in conjunction with `HTTPService::post()`:
 ///
 /// ```
-/// # use hypertyper::{Auth, HttpPost};
+/// # use hypertyper::auth::Auth;
+/// # use hypertyper::service::HttpPost;
 /// # use hypertyper::service::testing::{HttpTestService, TestDataLoader};
 /// # use serde::{Deserialize, Serialize};
 /// #
@@ -202,7 +204,7 @@ impl HttpPost for HttpTestService {
 /// let auth = Auth::new("my-api-key");
 /// let loader = TestDataLoader::new("tests/data/input");
 /// let data: Resource = loader.load("resource");
-/// let service = HTTPTestService::new("tests/data/output");
+/// let service = HttpTestService::new("tests/data/output");
 /// let response = service.post::<&str, Resource, Resource>("/resources/1", &auth, &data);
 /// ```
 pub struct TestDataLoader {
@@ -239,7 +241,7 @@ impl TestDataLoader {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Auth, HttpError, HttpGet, HttpPost};
+    use crate::prelude::*;
     use serde::{Deserialize, Serialize};
     use std::sync::LazyLock;
 
